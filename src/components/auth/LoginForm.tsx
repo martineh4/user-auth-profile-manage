@@ -12,6 +12,7 @@ export default function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const registered = searchParams.get("registered");
+  const emailChanged = searchParams.get("emailChanged");
   const [serverError, setServerError] = useState<string | null>(null);
 
   const {
@@ -43,10 +44,15 @@ export default function LoginForm() {
     <div className="flex min-h-screen items-center justify-center px-4 py-12">
       <div className="w-full max-w-md">
         <div className="mb-8 text-center">
+          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-pink-600 shadow">
+            <svg className="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+            </svg>
+          </div>
           <h1 className="text-2xl font-bold text-gray-900">Welcome back</h1>
           <p className="mt-2 text-sm text-gray-500">
             Don&apos;t have an account?{" "}
-            <Link href="/register" className="font-medium text-blue-600 hover:underline">
+            <Link href="/register" className="font-medium text-pink-600 hover:underline">
               Sign up
             </Link>
           </p>
@@ -56,6 +62,11 @@ export default function LoginForm() {
           {registered && (
             <div className="mb-4 rounded-lg bg-green-50 px-4 py-3 text-sm text-green-700 border border-green-200">
               Account created! You can now sign in.
+            </div>
+          )}
+          {emailChanged && (
+            <div className="mb-4 rounded-lg bg-green-50 px-4 py-3 text-sm text-green-700 border border-green-200">
+              Email updated! Please sign in with your new email address.
             </div>
           )}
 

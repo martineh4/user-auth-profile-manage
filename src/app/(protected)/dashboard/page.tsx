@@ -36,10 +36,10 @@ export default async function DashboardPage() {
                 alt={user.name}
                 width={80}
                 height={80}
-                className="rounded-full object-cover ring-2 ring-blue-100"
+                className="rounded-full object-cover ring-2 ring-pink-100"
               />
             ) : (
-              <div className="flex h-20 w-20 items-center justify-center rounded-full bg-blue-100 text-2xl font-bold text-blue-700">
+              <div className="flex h-20 w-20 items-center justify-center rounded-full bg-pink-100 text-2xl font-bold text-pink-700">
                 {user?.name?.[0]?.toUpperCase() ?? "U"}
               </div>
             )}
@@ -80,18 +80,15 @@ export default async function DashboardPage() {
             </h3>
             <div className="flex flex-wrap gap-3">
               <Link href="/profile" className="btn-primary text-sm">
-                Update Profile
+                Edit Profile
               </Link>
-              <span
-                className="btn-secondary text-sm cursor-not-allowed opacity-50"
-                title="Coming soon"
-              >
+              <Link href="/profile#password" className="btn-secondary text-sm">
                 Change Password
-              </span>
+              </Link>
+              <Link href="/profile#email" className="btn-secondary text-sm">
+                Change Email
+              </Link>
             </div>
-            <p className="mt-3 text-xs text-gray-400">
-              More features coming soon.
-            </p>
           </div>
         </div>
       </div>

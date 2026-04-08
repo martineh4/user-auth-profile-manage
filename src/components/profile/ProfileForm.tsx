@@ -60,7 +60,6 @@ export default function ProfileForm({ initialData }: ProfileFormProps) {
         return;
       }
 
-      // Sync the NextAuth session with the new name/avatar
       await update({ name: json.user.name, image: json.user.avatarUrl ?? null });
       setSuccessMessage("Profile updated successfully!");
     } catch {
@@ -104,11 +103,11 @@ export default function ProfileForm({ initialData }: ProfileFormProps) {
             alt="Avatar preview"
             width={72}
             height={72}
-            className="rounded-full object-cover ring-2 ring-blue-100"
+            className="rounded-full object-cover ring-2 ring-pink-100"
             onError={() => setAvatarPreview("")}
           />
         ) : (
-          <div className="flex h-[72px] w-[72px] shrink-0 items-center justify-center rounded-full bg-blue-100 text-2xl font-bold text-blue-700">
+          <div className="flex h-[72px] w-[72px] shrink-0 items-center justify-center rounded-full bg-pink-100 text-2xl font-bold text-pink-700">
             {initialData.name?.[0]?.toUpperCase() ?? "U"}
           </div>
         )}
@@ -144,9 +143,9 @@ export default function ProfileForm({ initialData }: ProfileFormProps) {
             value={initialData.email}
             disabled
             className="form-input"
-            title="Email cannot be changed"
+            title="Use 'Change Email' below to update your email"
           />
-          <p className="mt-1.5 text-xs text-gray-400">Email cannot be changed.</p>
+          <p className="mt-1.5 text-xs text-gray-400">Change email in the section below.</p>
         </div>
       </div>
 

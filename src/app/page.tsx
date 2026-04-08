@@ -5,7 +5,7 @@ export default function HomePage() {
     <main className="flex min-h-screen flex-col items-center justify-center px-4">
       <div className="w-full max-w-md text-center">
         <div className="mb-8">
-          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-blue-600 shadow-lg">
+          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-pink-600 shadow-lg">
             <svg
               className="h-8 w-8 text-white"
               fill="none"
@@ -49,11 +49,12 @@ export default function HomePage() {
                 "JWT session management via NextAuth.js",
                 "Protected dashboard route with redirect",
                 "Profile editing with form validation",
+                "Change password, email, and delete account",
                 "PostgreSQL persistence via Prisma ORM",
               ].map((feature) => (
                 <li key={feature} className="flex items-start gap-2">
                   <svg
-                    className="mt-0.5 h-4 w-4 shrink-0 text-blue-500"
+                    className="mt-0.5 h-4 w-4 shrink-0 text-pink-500"
                     fill="currentColor"
                     viewBox="0 0 20 20"
                   >
