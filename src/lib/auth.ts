@@ -31,6 +31,11 @@ export const authOptions: NextAuthOptions = {
         const passwordMatch = await bcrypt.compare(password, user.password);
         if (!passwordMatch) return null;
 
+        if (!user.emailVerified) {
+          // Encode the reason in the error so the login form can show a helpful message
+          throw new Error("EmailNotVerified");
+        }
+
         return {
           id: user.id,
           email: user.email,
@@ -45,7 +50,6 @@ export const authOptions: NextAuthOptions = {
       if (user) {
         token.id = user.id;
       }
-      // Handle session update triggered by useSession update()
       if (trigger === "update" && session) {
         token.name = session.name;
         token.picture = session.image;

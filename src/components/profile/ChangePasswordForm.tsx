@@ -1,121 +1,74 @@
 "use client";
 
 import { useState } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { changePasswordSchema, type ChangePasswordInput } from "@/lib/validations";
+import { useSession } from "next-auth/react";
 
 export default function ChangePasswordForm() {
-  const [serverError, setServerError] = useState<string | null>(null);
-  const [success, setSuccess] = useState(false);
+  const { data: session } = useSession();
+  const [status, setStatus] = useState<"idle" | "loading" | "sent" | "error">("idle");
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  const {
-    register,
-    handleSubmit,
-    reset,
-    formState: { errors, isSubmitting, isDirty },
-  } = useForm<ChangePasswordInput>({
-    resolver: zodResolver(changePasswordSchema),
-  });
+  const email = session?.user?.email ?? "";
 
-  const onSubmit = async (data: ChangePasswordInput) => {
-    setServerError(null);
-    setSuccess(false);
-
+  const handleSendReset = async () => {
+    setStatus("loading");
+    setErrorMsg(null);
     try {
-      const res = await fetch("/api/profile/password", {
-        method: "PUT",
+      const res = await fetch("/api/auth/forgot-password", {
+        method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
+        body: JSON.stringify({ email }),
       });
-
       const json = await res.json();
-
       if (!res.ok) {
-        setServerError(json.error ?? "Failed to update password");
+        setErrorMsg(json.error ?? "Failed to send reset email");
+        setStatus("error");
         return;
       }
-
-      setSuccess(true);
-      reset();
+      setStatus("sent");
     } catch {
-      setServerError("Network error. Please try again.");
+      setErrorMsg("Network error. Please try again.");
+      setStatus("error");
     }
   };
 
+  // Mask the email for display: j***@example.com
+  const maskedEmail = email
+    ? email.replace(/^(.)(.*)(@.*)$/, (_, first, middle, domain) =>
+        first + "*".repeat(Math.min(middle.length, 4)) + domain
+      )
+    : "";
+
   return (
-    <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-5">
-      {serverError && (
-        <div className="rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700 border border-red-200">
-          {serverError}
-        </div>
-      )}
-      {success && (
+    <div className="space-y-4">
+      <p className="text-sm text-gray-600">
+        We&apos;ll send a password reset link to{" "}
+        <span className="font-medium text-gray-900">{maskedEmail}</span>.
+        Click the link in the email to set a new password — no need to know your current one.
+      </p>
+
+      {status === "sent" ? (
         <div className="rounded-lg bg-green-50 px-4 py-3 text-sm text-green-700 border border-green-200">
-          Password updated successfully!
+          Reset link sent! Check your inbox.{" "}
+          <span className="text-green-600 text-xs">(Check the server console in development.)</span>
         </div>
+      ) : (
+        <>
+          {status === "error" && (
+            <div className="rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700 border border-red-200">
+              {errorMsg}
+            </div>
+          )}
+          <button
+            type="button"
+            disabled={status === "loading" || !email}
+            onClick={handleSendReset}
+            className="btn-primary"
+          >
+            {status === "loading" ? "Sending…" : "Send password reset email"}
+          </button>
+        </>
       )}
-
-      <div>
-        <label htmlFor="currentPassword" className="form-label">
-          Current password
-        </label>
-        <input
-          id="currentPassword"
-          type="password"
-          autoComplete="current-password"
-          placeholder="Your current password"
-          className="form-input"
-          {...register("currentPassword")}
-        />
-        {errors.currentPassword && (
-          <p className="error-message">{errors.currentPassword.message}</p>
-        )}
-      </div>
-
-      <div>
-        <label htmlFor="newPassword" className="form-label">
-          New password
-        </label>
-        <input
-          id="newPassword"
-          type="password"
-          autoComplete="new-password"
-          placeholder="Min 8 chars, 1 uppercase, 1 number"
-          className="form-input"
-          {...register("newPassword")}
-        />
-        {errors.newPassword && (
-          <p className="error-message">{errors.newPassword.message}</p>
-        )}
-      </div>
-
-      <div>
-        <label htmlFor="confirmNewPassword" className="form-label">
-          Confirm new password
-        </label>
-        <input
-          id="confirmNewPassword"
-          type="password"
-          autoComplete="new-password"
-          placeholder="Re-enter new password"
-          className="form-input"
-          {...register("confirmNewPassword")}
-        />
-        {errors.confirmNewPassword && (
-          <p className="error-message">{errors.confirmNewPassword.message}</p>
-        )}
-      </div>
-
-      <div className="flex justify-end border-t border-gray-100 pt-4">
-        <button
-          type="submit"
-          disabled={isSubmitting || !isDirty}
-          className="btn-primary"
-        >
-          {isSubmitting ? "Updating…" : "Update password"}
-        </button>
-      </div>
-    </form>
+    </div>
   );
 }

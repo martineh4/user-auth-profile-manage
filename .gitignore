@@ -15,6 +15,10 @@ out/
 # Prisma
 prisma/migrations/
 
+# Uploaded files
+/public/uploads/avatars/*
+!/public/uploads/avatars/.gitkeep
+
 # Misc
 .DS_Store
 *.pem

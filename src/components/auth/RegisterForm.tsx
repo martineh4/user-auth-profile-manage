@@ -35,7 +35,7 @@ export default function RegisterForm() {
         return;
       }
 
-      router.push("/login?registered=1");
+      router.push("/verify-email?sent=1");
     } catch {
       setServerError("Network error. Please try again.");
     }
