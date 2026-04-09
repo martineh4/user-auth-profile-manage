@@ -22,7 +22,8 @@ export async function PUT(request: Request) {
       );
     }
 
-    const { newEmail, password } = parsed.data;
+    const newEmail = parsed.data.newEmail.toLowerCase();
+    const { password } = parsed.data;
 
     const user = await prisma.user.findUnique({
       where: { id: session.user.id },
