@@ -39,7 +39,7 @@ function emailTemplate(title: string, bodyHtml: string) {
 }
 
 export async function sendVerificationEmail(to: string, token: string) {
-  const url = `${BASE_URL}/verify-email?token=${token}`;
+  const url = `${BASE_URL}/api/auth/verify-email?token=${token}`;
   const resend = getResend();
 
   if (!resend) {
