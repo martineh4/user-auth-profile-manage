@@ -1,27 +1,13 @@
-import nodemailer from "nodemailer";
+import { Resend } from "resend";
 
 const BASE_URL = process.env.NEXTAUTH_URL ?? "http://localhost:3000";
-const FROM = process.env.SMTP_FROM ?? '"AuthProfile" <noreply@authprofile.app>';
+const FROM = process.env.RESEND_FROM ?? "AuthProfile <noreply@resend.dev>";
 
-async function createTransporter() {
-  if (process.env.SMTP_HOST) {
-    return nodemailer.createTransport({
-      host: process.env.SMTP_HOST,
-      port: Number(process.env.SMTP_PORT ?? 587),
-      secure: process.env.SMTP_SECURE === "true",
-      auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
-    });
+function getResend() {
+  if (!process.env.RESEND_API_KEY) {
+    return null;
   }
-
-  // Dev fallback: Ethereal fake SMTP — preview emails at the logged URL
-  const testAccount = await nodemailer.createTestAccount();
-  console.log("\n📧 Dev SMTP:", testAccount.user, "/", testAccount.pass);
-  return nodemailer.createTransport({
-    host: "smtp.ethereal.email",
-    port: 587,
-    secure: false,
-    auth: { user: testAccount.user, pass: testAccount.pass },
-  });
+  return new Resend(process.env.RESEND_API_KEY);
 }
 
 function emailTemplate(title: string, bodyHtml: string) {
@@ -54,9 +40,15 @@ function emailTemplate(title: string, bodyHtml: string) {
 
 export async function sendVerificationEmail(to: string, token: string) {
   const url = `${BASE_URL}/verify-email?token=${token}`;
-  const transport = await createTransporter();
+  const resend = getResend();
 
-  const info = await transport.sendMail({
+  if (!resend) {
+    console.log(`\n📧 [DEV] Verification email for ${to}`);
+    console.log(`🔗 Verify link: ${url}\n`);
+    return;
+  }
+
+  await resend.emails.send({
     from: FROM,
     to,
     subject: "Verify your email — AuthProfile",
@@ -74,18 +66,19 @@ export async function sendVerificationEmail(to: string, token: string) {
       <p style="margin:12px 0 0;font-size:12px;color:#9ca3af">This link expires in 24 hours.</p>`
     ),
   });
-
-  if (process.env.NODE_ENV !== "production") {
-    console.log(`\n📧 Verify email preview: ${nodemailer.getTestMessageUrl(info)}`);
-    console.log(`🔗 Direct link: ${url}\n`);
-  }
 }
 
 export async function sendPasswordResetEmail(to: string, token: string) {
   const url = `${BASE_URL}/reset-password?token=${token}`;
-  const transport = await createTransporter();
+  const resend = getResend();
 
-  const info = await transport.sendMail({
+  if (!resend) {
+    console.log(`\n📧 [DEV] Password reset email for ${to}`);
+    console.log(`🔗 Reset link: ${url}\n`);
+    return;
+  }
+
+  await resend.emails.send({
     from: FROM,
     to,
     subject: "Reset your password — AuthProfile",
@@ -103,9 +96,4 @@ export async function sendPasswordResetEmail(to: string, token: string) {
       <p style="margin:12px 0 0;font-size:12px;color:#9ca3af">This link expires in 1 hour.</p>`
     ),
   });
-
-  if (process.env.NODE_ENV !== "production") {
-    console.log(`\n📧 Reset email preview: ${nodemailer.getTestMessageUrl(info)}`);
-    console.log(`🔗 Direct link: ${url}\n`);
-  }
 }
