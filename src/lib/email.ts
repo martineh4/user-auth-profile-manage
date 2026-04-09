@@ -48,6 +48,11 @@ export async function sendVerificationEmail(to: string, token: string) {
     return;
   }
 
+  if (process.env.NODE_ENV !== "production") {
+    console.log(`\n📧 [DEV] Verification email for ${to}`);
+    console.log(`🔗 Direct verify link: ${url}\n`);
+  }
+
   await resend.emails.send({
     from: FROM,
     to,
@@ -76,6 +81,11 @@ export async function sendPasswordResetEmail(to: string, token: string) {
     console.log(`\n📧 [DEV] Password reset email for ${to}`);
     console.log(`🔗 Reset link: ${url}\n`);
     return;
+  }
+
+  if (process.env.NODE_ENV !== "production") {
+    console.log(`\n📧 [DEV] Password reset email for ${to}`);
+    console.log(`🔗 Direct reset link: ${url}\n`);
   }
 
   await resend.emails.send({
