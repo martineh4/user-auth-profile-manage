@@ -1,18 +1,26 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { signOut, useSession } from "next-auth/react";
+import { usePathname, useRouter } from "next/navigation";
 import Image from "next/image";
+import { authClient } from "@/lib/auth-client";
 
 export default function Navbar() {
-  const { data: session } = useSession();
+  const { data: session } = authClient.useSession();
   const pathname = usePathname();
+  const router = useRouter();
 
   const navLinks = [
     { href: "/dashboard", label: "Dashboard" },
     { href: "/profile", label: "Profile" },
   ];
+
+  const handleSignOut = async () => {
+    await authClient.signOut();
+    router.push("/login");
+  };
+
+  const avatarUrl = (session?.user as { avatarUrl?: string | null })?.avatarUrl;
 
   return (
     <header className="border-b border-pink-100 bg-white shadow-sm">
@@ -44,10 +52,10 @@ export default function Navbar() {
 
         <div className="flex items-center gap-3">
           <div className="hidden sm:flex items-center gap-2">
-            {session?.user?.image ? (
+            {avatarUrl ? (
               <Image
-                src={session.user.image}
-                alt={session.user.name ?? "User"}
+                src={avatarUrl}
+                alt={session?.user?.name ?? "User"}
                 width={32}
                 height={32}
                 className="rounded-full object-cover"
@@ -60,7 +68,7 @@ export default function Navbar() {
             <span className="text-sm text-gray-700">{session?.user?.name}</span>
           </div>
           <button
-            onClick={() => signOut({ callbackUrl: "/login" })}
+            onClick={handleSignOut}
             className="btn-secondary py-1.5 text-xs"
           >
             Sign out

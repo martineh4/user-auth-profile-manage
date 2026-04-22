@@ -3,7 +3,8 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { signOut } from "next-auth/react";
+import { useRouter } from "next/navigation";
+import { authClient } from "@/lib/auth-client";
 import { changeEmailSchema, type ChangeEmailInput } from "@/lib/validations";
 
 interface ChangeEmailFormProps {
@@ -11,6 +12,7 @@ interface ChangeEmailFormProps {
 }
 
 export default function ChangeEmailForm({ currentEmail }: ChangeEmailFormProps) {
+  const router = useRouter();
   const [serverError, setServerError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
 
@@ -43,8 +45,10 @@ export default function ChangeEmailForm({ currentEmail }: ChangeEmailFormProps) 
 
       setSuccess(true);
       reset();
-      // Sign out so the user re-authenticates with the new email
-      setTimeout(() => signOut({ callbackUrl: "/login?emailChanged=1" }), 2000);
+      setTimeout(async () => {
+        await authClient.signOut();
+        router.push("/login?emailChanged=1");
+      }, 2000);
     } catch {
       setServerError("Network error. Please try again.");
     }

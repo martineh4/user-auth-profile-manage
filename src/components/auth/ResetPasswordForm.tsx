@@ -5,7 +5,24 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { resetPasswordSchema, type ResetPasswordInput } from "@/lib/validations";
+import { z } from "zod";
+import { authClient } from "@/lib/auth-client";
+
+const resetSchema = z
+  .object({
+    newPassword: z
+      .string()
+      .min(8, "Password must be at least 8 characters")
+      .regex(/[A-Z]/, "Must contain at least one uppercase letter")
+      .regex(/[0-9]/, "Must contain at least one number"),
+    confirmPassword: z.string(),
+  })
+  .refine((d) => d.newPassword === d.confirmPassword, {
+    message: "Passwords do not match",
+    path: ["confirmPassword"],
+  });
+
+type ResetInput = z.infer<typeof resetSchema>;
 
 export default function ResetPasswordForm() {
   const searchParams = useSearchParams();
@@ -17,28 +34,24 @@ export default function ResetPasswordForm() {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
-  } = useForm<ResetPasswordInput>({
-    resolver: zodResolver(resetPasswordSchema),
-    defaultValues: { token },
+  } = useForm<ResetInput>({
+    resolver: zodResolver(resetSchema),
   });
 
-  const onSubmit = async (data: ResetPasswordInput) => {
+  const onSubmit = async (data: ResetInput) => {
     setServerError(null);
-    try {
-      const res = await fetch("/api/auth/reset-password", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
-      });
-      const json = await res.json();
-      if (!res.ok) {
-        setServerError(json.error ?? "Failed to reset password");
-        return;
-      }
-      router.push("/login?passwordReset=1");
-    } catch {
-      setServerError("Network error. Please try again.");
+
+    const { error } = await authClient.resetPassword({
+      newPassword: data.newPassword,
+      token,
+    });
+
+    if (error) {
+      setServerError(error.message ?? "Failed to reset password");
+      return;
     }
+
+    router.push("/login?passwordReset=1");
   };
 
   if (!token) {
@@ -79,8 +92,6 @@ export default function ResetPasswordForm() {
           )}
 
           <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-5">
-            <input type="hidden" {...register("token")} />
-
             <div>
               <label htmlFor="newPassword" className="form-label">New password</label>
               <input

@@ -1,5 +1,5 @@
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { auth } from "@/lib/auth";
+import { headers } from "next/headers";
 import { prisma } from "@/lib/db";
 import { redirect } from "next/navigation";
 import ProfileForm from "@/components/profile/ProfileForm";
@@ -10,7 +10,7 @@ import DeleteAccountSection from "@/components/profile/DeleteAccountSection";
 export const metadata = { title: "Edit Profile — AuthProfile" };
 
 export default async function ProfilePage() {
-  const session = await getServerSession(authOptions);
+  const session = await auth.api.getSession({ headers: headers() });
   if (!session?.user?.id) redirect("/login");
 
   const user = await prisma.user.findUnique({

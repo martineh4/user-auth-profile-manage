@@ -3,10 +3,12 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { signOut } from "next-auth/react";
+import { useRouter } from "next/navigation";
+import { authClient } from "@/lib/auth-client";
 import { deleteAccountSchema, type DeleteAccountInput } from "@/lib/validations";
 
 export default function DeleteAccountSection() {
+  const router = useRouter();
   const [showConfirm, setShowConfirm] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
 
@@ -36,7 +38,8 @@ export default function DeleteAccountSection() {
         return;
       }
 
-      await signOut({ callbackUrl: "/login" });
+      await authClient.signOut();
+      router.push("/login");
     } catch {
       setServerError("Network error. Please try again.");
     }

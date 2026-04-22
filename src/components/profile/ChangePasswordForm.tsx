@@ -1,10 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { useSession } from "next-auth/react";
+import { authClient } from "@/lib/auth-client";
 
 export default function ChangePasswordForm() {
-  const { data: session } = useSession();
+  const { data: session } = authClient.useSession();
   const [status, setStatus] = useState<"idle" | "loading" | "sent" | "error">("idle");
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
@@ -14,14 +14,12 @@ export default function ChangePasswordForm() {
     setStatus("loading");
     setErrorMsg(null);
     try {
-      const res = await fetch("/api/auth/forgot-password", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
+      const { error } = await authClient.requestPasswordReset({
+        email,
+        redirectTo: "/reset-password",
       });
-      const json = await res.json();
-      if (!res.ok) {
-        setErrorMsg(json.error ?? "Failed to send reset email");
+      if (error) {
+        setErrorMsg(error.message ?? "Failed to send reset email");
         setStatus("error");
         return;
       }
@@ -32,7 +30,6 @@ export default function ChangePasswordForm() {
     }
   };
 
-  // Mask the email for display: j***@example.com
   const maskedEmail = email
     ? email.replace(/^(.)(.*)(@.*)$/, (_, first, middle, domain) =>
         first + "*".repeat(Math.min(middle.length, 4)) + domain

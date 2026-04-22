@@ -3,9 +3,9 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
+import { authClient } from "@/lib/auth-client";
 import { loginSchema, type LoginInput } from "@/lib/validations";
 
 export default function LoginForm() {
@@ -30,15 +30,17 @@ export default function LoginForm() {
     setServerError(null);
     setUnverified(false);
 
-    const result = await signIn("credentials", {
+    const { error } = await authClient.signIn.email({
       email: data.email,
       password: data.password,
-      redirect: false,
     });
 
-    if (result?.error) {
-      // NextAuth passes the thrown Error message as the error string
-      if (result.error === "EmailNotVerified") {
+    if (error) {
+      if (
+        error.status === 403 ||
+        error.message?.toLowerCase().includes("email") &&
+          error.message?.toLowerCase().includes("verified")
+      ) {
         setUnverified(true);
       } else {
         setServerError("Invalid email or password.");

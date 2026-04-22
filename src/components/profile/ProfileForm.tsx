@@ -3,7 +3,6 @@
 import { useState, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useSession } from "next-auth/react";
 import Image from "next/image";
 import { profileSchema, type ProfileInput } from "@/lib/validations";
 
@@ -15,7 +14,6 @@ interface UserProfile {
 }
 
 export default function ProfileForm({ initialData }: { initialData: UserProfile }) {
-  const { update } = useSession();
   const [serverError, setServerError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [avatarPreview, setAvatarPreview] = useState<string>(initialData.avatarUrl ?? "");
@@ -58,7 +56,6 @@ export default function ProfileForm({ initialData }: { initialData: UserProfile 
         return;
       }
 
-      await update({ name: json.user.name, image: json.user.avatarUrl ?? null });
       setSuccessMessage("Profile updated successfully!");
     } catch {
       setServerError("Network error. Please try again.");
@@ -80,7 +77,6 @@ export default function ProfileForm({ initialData }: { initialData: UserProfile 
 
     setUploadError(null);
 
-    // Show local preview immediately
     const localUrl = URL.createObjectURL(file);
     setAvatarPreview(localUrl);
 
@@ -100,7 +96,6 @@ export default function ProfileForm({ initialData }: { initialData: UserProfile 
 
       setValue("avatarUrl", json.avatarUrl, { shouldDirty: true });
       setAvatarPreview(json.avatarUrl);
-      await update({ image: json.avatarUrl });
     } catch {
       setUploadError("Upload failed. Please try again.");
     } finally {

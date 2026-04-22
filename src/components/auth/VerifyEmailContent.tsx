@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
+import { authClient } from "@/lib/auth-client";
 
 export default function VerifyEmailContent() {
   const searchParams = useSearchParams();
@@ -16,12 +17,11 @@ export default function VerifyEmailContent() {
     e.preventDefault();
     setResendStatus("loading");
     try {
-      const res = await fetch("/api/auth/resend-verification", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
+      const { error: resendError } = await authClient.sendVerificationEmail({
+        email,
+        callbackURL: "/login?verified=1",
       });
-      setResendStatus(res.ok ? "sent" : "error");
+      setResendStatus(resendError ? "error" : "sent");
     } catch {
       setResendStatus("error");
     }

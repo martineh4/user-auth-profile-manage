@@ -1,6 +1,5 @@
 import { Resend } from "resend";
 
-const BASE_URL = process.env.NEXTAUTH_URL ?? "http://localhost:3000";
 const FROM = process.env.RESEND_FROM ?? "AuthProfile <noreply@resend.dev>";
 
 function getResend() {
@@ -38,8 +37,7 @@ function emailTemplate(title: string, bodyHtml: string) {
 </html>`;
 }
 
-export async function sendVerificationEmail(to: string, token: string) {
-  const url = `${BASE_URL}/api/auth/verify-email?token=${token}`;
+export async function sendVerificationEmail(to: string, url: string) {
   const resend = getResend();
 
   if (!resend) {
@@ -73,8 +71,7 @@ export async function sendVerificationEmail(to: string, token: string) {
   });
 }
 
-export async function sendPasswordResetEmail(to: string, token: string) {
-  const url = `${BASE_URL}/reset-password?token=${token}`;
+export async function sendPasswordResetEmail(to: string, url: string) {
   const resend = getResend();
 
   if (!resend) {

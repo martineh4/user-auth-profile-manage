@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
+import { authClient } from "@/lib/auth-client";
 import { forgotPasswordSchema, type ForgotPasswordInput } from "@/lib/validations";
 
 export default function ForgotPasswordForm() {
@@ -20,21 +21,18 @@ export default function ForgotPasswordForm() {
 
   const onSubmit = async (data: ForgotPasswordInput) => {
     setServerError(null);
-    try {
-      const res = await fetch("/api/auth/forgot-password", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
-      });
-      if (!res.ok) {
-        const json = await res.json();
-        setServerError(json.error ?? "Something went wrong");
-        return;
-      }
-      setSubmitted(true);
-    } catch {
-      setServerError("Network error. Please try again.");
+
+    const { error } = await authClient.requestPasswordReset({
+      email: data.email,
+      redirectTo: "/reset-password",
+    });
+
+    if (error) {
+      setServerError(error.message ?? "Something went wrong");
+      return;
     }
+
+    setSubmitted(true);
   };
 
   return (

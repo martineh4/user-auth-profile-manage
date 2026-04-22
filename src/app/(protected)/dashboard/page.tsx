@@ -1,5 +1,5 @@
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { auth } from "@/lib/auth";
+import { headers } from "next/headers";
 import { prisma } from "@/lib/db";
 import Link from "next/link";
 import Image from "next/image";
@@ -7,7 +7,7 @@ import Image from "next/image";
 export const metadata = { title: "Dashboard — AuthProfile" };
 
 export default async function DashboardPage() {
-  const session = await getServerSession(authOptions);
+  const session = await auth.api.getSession({ headers: headers() });
 
   const user = await prisma.user.findUnique({
     where: { id: session!.user.id },

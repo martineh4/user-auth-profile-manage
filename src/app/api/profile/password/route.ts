@@ -1,12 +1,12 @@
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
+import { headers } from "next/headers";
 import bcrypt from "bcryptjs";
-import { authOptions } from "@/lib/auth";
+import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { changePasswordSchema } from "@/lib/validations";
 
 export async function PUT(request: Request) {
-  const session = await getServerSession(authOptions);
+  const session = await auth.api.getSession({ headers: headers() });
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
@@ -24,16 +24,16 @@ export async function PUT(request: Request) {
 
     const { currentPassword, newPassword } = parsed.data;
 
-    const user = await prisma.user.findUnique({
-      where: { id: session.user.id },
+    const account = await prisma.account.findFirst({
+      where: { userId: session.user.id, providerId: "credential" },
       select: { password: true },
     });
 
-    if (!user) {
+    if (!account?.password) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    const passwordMatch = await bcrypt.compare(currentPassword, user.password);
+    const passwordMatch = await bcrypt.compare(currentPassword, account.password);
     if (!passwordMatch) {
       return NextResponse.json(
         { error: "Current password is incorrect" },
@@ -43,8 +43,8 @@ export async function PUT(request: Request) {
 
     const hashedPassword = await bcrypt.hash(newPassword, 12);
 
-    await prisma.user.update({
-      where: { id: session.user.id },
+    await prisma.account.updateMany({
+      where: { userId: session.user.id, providerId: "credential" },
       data: { password: hashedPassword },
     });
 

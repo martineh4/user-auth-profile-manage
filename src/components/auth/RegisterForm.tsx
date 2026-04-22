@@ -5,6 +5,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { authClient } from "@/lib/auth-client";
 import { registerSchema, type RegisterInput } from "@/lib/validations";
 
 export default function RegisterForm() {
@@ -21,24 +22,24 @@ export default function RegisterForm() {
 
   const onSubmit = async (data: RegisterInput) => {
     setServerError(null);
-    try {
-      const res = await fetch("/api/auth/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
-      });
 
-      const json = await res.json();
+    const { error } = await authClient.signUp.email({
+      email: data.email,
+      password: data.password,
+      name: data.name,
+      callbackURL: "/login?verified=1",
+    });
 
-      if (!res.ok) {
-        setServerError(json.error ?? "Registration failed");
-        return;
+    if (error) {
+      if (error.status === 409 || error.message?.toLowerCase().includes("already")) {
+        setServerError("An account with this email already exists.");
+      } else {
+        setServerError(error.message ?? "Registration failed. Please try again.");
       }
-
-      router.push("/verify-email?sent=1");
-    } catch {
-      setServerError("Network error. Please try again.");
+      return;
     }
+
+    router.push("/verify-email?sent=1");
   };
 
   return (
